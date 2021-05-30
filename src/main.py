@@ -4,7 +4,7 @@ import os
 import pandas as pd
 import argparse
 
-def generate_certificates(pFile, pTemplate, pOutformat, pNamecol, pIdentcol, pXlocation, pYlocation, pFontSize):
+def generate_certificates(pFile, pTemplate, pOutformat, pNamecol, pIdentcol, pXlocationName, pYlocationName, pXIdentification, pYIdentification, pFontSizeName, pFontSizeIdent):
 
     df = None
     if(".csv" in pFile):
@@ -21,11 +21,16 @@ def generate_certificates(pFile, pTemplate, pOutformat, pNamecol, pIdentcol, pXl
         rgb = Image.new('RGB', im.size, (255, 255, 255))  # white background
 
         d = ImageDraw.Draw(im)
-        location = (pXlocation, pYlocation)
-        text_color = (0, 0, 0)
-        font = ImageFont.truetype("arial.ttf", pFontSize)
-        d.text(location, i, fill=text_color,font=font)
+        location_name = (pXlocationName, pYlocationName)
+        location_ident = (pXIdentification, pYIdentification)
 
+        text_color = (0, 0, 0)
+        font_name = ImageFont.truetype("arial.ttf", pFontSizeName)
+        font_ident = ImageFont.truetype("arial.ttf", pFontSizeIdent)
+        
+        d.text(location_name, i, fill=text_color,font=font_name)
+        d.text(location_ident, i, fill=text_color,font=font_ident)
+        
         rgb.paste(im, mask=im.split()[3])               # paste using alpha channel as mask
 
         rgb.save("./certificates/certificate_"+i+".{0}".format(pOutformat), 'PDF', resoultion=100.0)
@@ -50,14 +55,23 @@ if __name__ == "__main__":
     parser.add_argument('-i','--identcol', type=str, 
         default="identification", help='Field column name of the identification.')
 
-    parser.add_argument('-x','--xlocation', type=float, 
+    parser.add_argument('-xN','--xlocationName', type=float, 
         default=133, help='The x location in the axis X of the start of the name.')
 
-    parser.add_argument('-y','--ylocation', type=float, 
+    parser.add_argument('-yN','--ylocationName', type=float, 
         default=665, help='The x location in the axis Y of the start of the name.')
     
-    parser.add_argument('-f','--fontSize', type=int, 
+    parser.add_argument('-f','--fontSizeName', type=int, 
         default=12, help='Font size.')
+
+    parser.add_argument('-xI','--xlocationIdent', type=float, 
+        default=133, help='The x location in the axis X of the start of the name.')
+
+    parser.add_argument('-yI','--ylocationIdent', type=float, 
+        default=665, help='The x location in the axis Y of the start of the name.')
+    
+    parser.add_argument('-f','--fontSizeIdent', type=int, 
+        default=12, help='Font size of the field Identification.')
     
     args = parser.parse_args()
-    generate_certificates(args.csvfile, args.template, args.outformat, args.namecol, args.identcol, args.xlocation, args.ylocation, args.fontSize)
+    generate_certificates(args.csvfile, args.template, args.outformat, args.namecol, args.identcol, args.xlocationName, args.ylocationName,  args.xlocationIdent, args.ylocationIdent, args.fontSize, args.fontSizeIdent)
