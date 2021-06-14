@@ -30,5 +30,5 @@ Argument| Description
 ## How to use
 
 ```python
-  python main.py -c "name.csv" -t "certificate.png" -o "pdf" -n "name" -x 133 -y 665 -f 80
+  python main.py -d "name.csv" -t "certificate.jpg" -n "name" -i "identification" -t "hours"
 ```
