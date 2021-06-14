@@ -4,60 +4,79 @@ import os
 import pandas as pd
 import argparse
 
-def generate_certificates(pFile, pTemplate, pOutformat, pNamecol, pIdentcol, pXlocation, pYlocation, pFontSize):
+# generate_certificates
+# Generate certificates with the name and identification
+
+def generate_certificates(**kwargs):
 
     df = None
-    if(".csv" in pFile):
-        df = pd.read_csv(pFile)
-    elif(".xlsx" in pFile):
-        df = pd.read_excel(pFile)
+    if(".csv" in kwargs['data_file']):
+        df = pd.read_csv(kwargs['data_file'], sep=',')
+    elif(".xlsx" in kwargs['data_file']):
+        df = pd.read_excel(kwargs['data_file'])
     else:
         return
-
     os.makedirs("./certificates", exist_ok=True)
-    name_list = df[pNamecol].to_list()
-    for i in name_list:
-        im = Image.open(pTemplate)
-        rgb = Image.new('RGB', im.size, (255, 255, 255))  # white background
 
-        d = ImageDraw.Draw(im)
-        location = (pXlocation, pYlocation)
-        text_color = (0, 0, 0)
-        font = ImageFont.truetype("arial.ttf", pFontSize)
-        d.text(location, i, fill=text_color,font=font)
+    for index, row in df.iterrows():
 
-        rgb.paste(im, mask=im.split()[3])               # paste using alpha channel as mask
+        im = Image.open(kwargs['template_file'])
 
-        rgb.save("./certificates/certificate_"+i+".{0}".format(pOutformat), 'PDF', resoultion=100.0)
+        name_draw = ImageDraw.Draw(im)
+        name_location = ( kwargs['x_name'],  kwargs['y_name'])
+        name_text_color = (0, 0, 0)
+        name_font = ImageFont.truetype("arial.ttf", kwargs['name_font_size'])
 
+        name_draw.text(name_location, row[kwargs['name_col']], fill=name_text_color,font=name_font)
 
+        if kwargs['ident_col'] != "":
+            ident_draw = ImageDraw.Draw(im)
+            ident_location = ( kwargs['x_ident'],  kwargs['y_ident'])
+            ident_text_color = (0, 0, 0)
+            ident_font = ImageFont.truetype("arial.ttf", kwargs['ident_font_size'])
+
+            ident_draw.text(ident_location, row[kwargs['ident_col']], fill=ident_text_color,font=ident_font)
+
+        im.save("./certificates/certificate_"+ row[kwargs['name_col']] +".{0}".format(kwargs['out_format']), 'PDF', resoultion=100.0)
+    
 if __name__ == "__main__":
         
     parser = argparse.ArgumentParser(description='Generate certificates.')
 
-    parser.add_argument('-c', '--csvfile', type=str, 
-        default="", help='The rute of the csv file.', required=True)
+    parser.add_argument('-d', '--data_file', type=str, 
+        help='The path of the csv or excel file with the data.', required=True)
 
-    parser.add_argument('-t','--template', type=str, 
-        default="", help='The certificate template in pdf format.', required=True)
+    parser.add_argument('-t','--template_file', type=str, 
+        help='The certificate template in pdf format.', required=True)
 
-    parser.add_argument('-o','--outformat', type=str, 
+    parser.add_argument('-o','--out_format', type=str, 
         default="pdf", help='The output format can be pdf, png or jpeg.')
 
-    parser.add_argument('-n','--namecol', type=str, 
-        default="name", help='Field column name of the person.', required=True)
+    parser.add_argument('-n','--name_col', type=str, 
+        default="name", help='Name of the field column name.', required=True)
 
-    parser.add_argument('-i','--identcol', type=str, 
-        default="identification", help='Field column name of the identification.')
+    parser.add_argument('-i','--ident_col', type=str, 
+        default="", help='Name of the field column name of the identification.')
 
-    parser.add_argument('-x','--xlocation', type=float, 
-        default=133, help='The x location in the axis X of the start of the name.')
+    parser.add_argument('-xn','--x_name', type=float, 
+        default=100, help='The x location of the name field in the template.')
 
-    parser.add_argument('-y','--ylocation', type=float, 
-        default=665, help='The x location in the axis Y of the start of the name.')
+    parser.add_argument('-yn','--y_name', type=float, 
+        default=492, help='The y location of the name field in the template.')
     
-    parser.add_argument('-f','--fontSize', type=int, 
-        default=12, help='Font size.')
+    parser.add_argument('-xi','--x_ident', type=float, 
+        default=100, help='The y location of the identification field in the template.')
+
+    parser.add_argument('-yi','--y_ident', type=float, 
+        default=610, help='The y location of the identification field in the template.')
+
+    parser.add_argument('-nfs','--name_font_size', type=int, 
+        default=80, help='Font size of the name column.')
+
+    parser.add_argument('-ifs','--ident_font_size', type=int, 
+        default=50, help='Font size identification column.')
     
     args = parser.parse_args()
-    generate_certificates(args.csvfile, args.template, args.outformat, args.namecol, args.identcol, args.xlocation, args.ylocation, args.fontSize)
+    args_dict = vars(args)
+    generate_certificates(**args_dict)
+
