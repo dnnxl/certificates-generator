@@ -11,13 +11,13 @@ def generate_certificates(**kwargs):
 
     df = None
     if(".csv" in kwargs['data_file']):
-        df = pd.read_csv(kwargs['data_file'], sep=',')
+        df = pd.read_csv(kwargs['data_file'], usecols=[value for (key, value) in kwargs.items() if '_col' in key and value != ''])
     elif(".xlsx" in kwargs['data_file']):
         df = pd.read_excel(kwargs['data_file'])
     else:
         return
+    print(df)
     os.makedirs("./certificates", exist_ok=True)
-
     for index, row in df.iterrows():
 
         im = Image.open(kwargs['template_file'])
@@ -36,6 +36,14 @@ def generate_certificates(**kwargs):
             ident_font = ImageFont.truetype("arial.ttf", kwargs['ident_font_size'])
 
             ident_draw.text(ident_location, row[kwargs['ident_col']], fill=ident_text_color,font=ident_font)
+
+        if kwargs['time_col'] != "":
+            time_draw = ImageDraw.Draw(im)
+            time_location = ( kwargs['x_time'],  kwargs['y_time'])
+            time_text_color = (0, 0, 0)
+            time_font = ImageFont.truetype("arial.ttf", kwargs['time_font_size'])
+
+            time_draw.text(time_location, str(row[kwargs['time_col']]), fill=time_text_color,font=time_font)
 
         im.save("./certificates/certificate_"+ row[kwargs['name_col']] +".{0}".format(kwargs['out_format']), 'PDF', resoultion=100.0)
     
@@ -58,6 +66,9 @@ if __name__ == "__main__":
     parser.add_argument('-i','--ident_col', type=str, 
         default="", help='Name of the field column name of the identification.')
 
+    parser.add_argument('-ti','--time_col', type=str, 
+        default="", help='Name of the field column name of the time.')
+
     parser.add_argument('-xn','--x_name', type=float, 
         default=100, help='The x location of the name field in the template.')
 
@@ -70,13 +81,21 @@ if __name__ == "__main__":
     parser.add_argument('-yi','--y_ident', type=float, 
         default=610, help='The y location of the identification field in the template.')
 
+    parser.add_argument('-xt','--x_time', type=float, 
+        default=715, help='The x location of the time field in the template.')
+
+    parser.add_argument('-yt','--y_time', type=float, 
+        default=678, help='The y location of the time field in the template.')
+
     parser.add_argument('-nfs','--name_font_size', type=int, 
         default=80, help='Font size of the name column.')
 
     parser.add_argument('-ifs','--ident_font_size', type=int, 
         default=50, help='Font size identification column.')
-    
+
+    parser.add_argument('-tfs','--time_font_size', type=int, 
+        default=30, help='Font size time column.')
+
     args = parser.parse_args()
     args_dict = vars(args)
     generate_certificates(**args_dict)
-
